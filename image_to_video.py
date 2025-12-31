@@ -6,11 +6,17 @@ from pathlib import Path
 from moviepy import ImageClip
 from moviepy.video.fx.FadeIn import FadeIn
 from moviepy.video.fx.FadeOut import FadeOut
+from constants import (
+    IMAGE_EXTENSIONS,
+    DEFAULT_VIDEO_DURATION,
+    DEFAULT_VIDEO_FPS,
+    DEFAULT_VIDEO_CODEC,
+    DEFAULT_VIDEO_FORMAT,
+    DEFAULT_VIDEO_OUTPUT_DIR,
+)
 
-IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff'}
-
-def image_to_video(image_path, output_path, duration=4, size=None, fps=24, codec='libx264',
-                   fade_in=0, fade_out=0):
+def image_to_video(image_path, output_path, duration=DEFAULT_VIDEO_DURATION, size=None,
+                   fps=DEFAULT_VIDEO_FPS, codec=DEFAULT_VIDEO_CODEC, fade_in=0, fade_out=0):
     """Convert image to video with optional resizing and fades."""
     clip = ImageClip(str(image_path), duration=duration)
     if size:
@@ -28,19 +34,23 @@ def image_to_video(image_path, output_path, duration=4, size=None, fps=24, codec
 def main():
     parser = argparse.ArgumentParser(description='Convert images to videos')
     parser.add_argument('input', help='Input image file or folder')
-    parser.add_argument('-o', '--output', help='Output folder (default: ./videos)')
-    parser.add_argument('-d', '--duration', type=float, default=4, help='Duration in seconds (default: 4)')
-    parser.add_argument('-f', '--format', default='mp4', help='Output format (default: mp4)')
+    parser.add_argument('-o', '--output', help=f'Output folder (default: ./{DEFAULT_VIDEO_OUTPUT_DIR})')
+    parser.add_argument('-d', '--duration', type=float, default=DEFAULT_VIDEO_DURATION,
+                       help=f'Duration in seconds (default: {DEFAULT_VIDEO_DURATION})')
+    parser.add_argument('-f', '--format', default=DEFAULT_VIDEO_FORMAT,
+                       help=f'Output format (default: {DEFAULT_VIDEO_FORMAT})')
     parser.add_argument('-s', '--size', help='Output size as WIDTHxHEIGHT (e.g., 1920x1080)')
-    parser.add_argument('--fps', type=int, default=24, help='Frames per second (default: 24)')
-    parser.add_argument('--codec', default='libx264', help='Video codec (default: libx264)')
+    parser.add_argument('--fps', type=int, default=DEFAULT_VIDEO_FPS,
+                       help=f'Frames per second (default: {DEFAULT_VIDEO_FPS})')
+    parser.add_argument('--codec', default=DEFAULT_VIDEO_CODEC,
+                       help=f'Video codec (default: {DEFAULT_VIDEO_CODEC})')
     parser.add_argument('--fade-in', type=float, default=0, help='Fade in duration in seconds (default: 0)')
     parser.add_argument('--fade-out', type=float, default=0, help='Fade out duration in seconds (default: 0)')
 
     args = parser.parse_args()
 
     input_path = Path(args.input)
-    output_dir = Path(args.output or 'videos')
+    output_dir = Path(args.output or DEFAULT_VIDEO_OUTPUT_DIR)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     size = tuple(map(int, args.size.split('x'))) if args.size else None

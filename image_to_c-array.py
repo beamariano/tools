@@ -9,14 +9,23 @@ import sys
 from PIL import Image
 import io
 import os
+from constants import (
+    DEFAULT_IMAGE_WIDTH,
+    DEFAULT_IMAGE_HEIGHT,
+    DEFAULT_JPEG_QUALITY,
+    DEFAULT_HEADER_OUTPUT,
+    DEFAULT_BYTES_PER_LINE,
+    RGB_MODE,
+    JPEG_SUBSAMPLING_420,
+)
 
 
 def image_to_header(
     input_path,
-    output_path="photoData.h",
-    target_width=240,
-    target_height=320,
-    quality=75,
+    output_path=DEFAULT_HEADER_OUTPUT,
+    target_width=DEFAULT_IMAGE_WIDTH,
+    target_height=DEFAULT_IMAGE_HEIGHT,
+    quality=DEFAULT_JPEG_QUALITY,
     flip_horizontal=False,
     flip_vertical=False,
     optimize=True,
@@ -43,9 +52,9 @@ def image_to_header(
     img = Image.open(input_path)
 
     # Convert to RGB if necessary
-    if img.mode != "RGB":
-        print(f"Converting from {img.mode} to RGB mode")
-        img = img.convert("RGB")
+    if img.mode != RGB_MODE:
+        print(f"Converting from {img.mode} to {RGB_MODE} mode")
+        img = img.convert(RGB_MODE)
 
     # Resize image to target dimensions
     original_size = img.size
@@ -66,7 +75,7 @@ def image_to_header(
     jpeg_buffer = io.BytesIO()
     print(f"Encoding JPEG (quality={quality}, optimize={optimize})")
     img.save(
-        jpeg_buffer, format="JPEG", quality=quality, optimize=optimize, subsampling=2
+        jpeg_buffer, format="JPEG", quality=quality, optimize=optimize, subsampling=JPEG_SUBSAMPLING_420
     )
     jpeg_data = jpeg_buffer.getvalue()
     jpeg_size = len(jpeg_data)
@@ -86,13 +95,12 @@ def image_to_header(
         # Write array declaration
         f.write(f"const unsigned char photoData[] PROGMEM = {{\n")
 
-        # Write bytes in groups of 12 per line
-        bytes_per_line = 12
-        for i in range(0, jpeg_size, bytes_per_line):
-            chunk = jpeg_data[i : i + bytes_per_line]
+        # Write bytes in groups per line
+        for i in range(0, jpeg_size, DEFAULT_BYTES_PER_LINE):
+            chunk = jpeg_data[i : i + DEFAULT_BYTES_PER_LINE]
             hex_values = ", ".join(f"0x{b:02X}" for b in chunk)
 
-            if i + bytes_per_line < jpeg_size:
+            if i + DEFAULT_BYTES_PER_LINE < jpeg_size:
                 f.write(f"  {hex_values},\n")
             else:
                 f.write(f"  {hex_values}\n")
@@ -140,10 +148,10 @@ def main():
     # Remove flags from argv for positional parsing
     args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
 
-    output_path = args[1] if len(args) > 1 else "photoData.h"
-    width = int(args[2]) if len(args) > 2 else 240
-    height = int(args[3]) if len(args) > 3 else 320
-    quality = int(args[4]) if len(args) > 4 else 75
+    output_path = args[1] if len(args) > 1 else DEFAULT_HEADER_OUTPUT
+    width = int(args[2]) if len(args) > 2 else DEFAULT_IMAGE_WIDTH
+    height = int(args[3]) if len(args) > 3 else DEFAULT_IMAGE_HEIGHT
+    quality = int(args[4]) if len(args) > 4 else DEFAULT_JPEG_QUALITY
 
     if not os.path.exists(input_path):
         print(f"Error: Input file '{input_path}' not found!")

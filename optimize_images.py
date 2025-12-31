@@ -9,10 +9,22 @@ import sys
 from pathlib import Path
 from PIL import Image
 import argparse
+from constants import (
+    IMAGE_EXTENSIONS,
+    DEFAULT_MAX_WEB_WIDTH,
+    DEFAULT_MAX_WEB_HEIGHT,
+    DEFAULT_WEB_QUALITY,
+    DEFAULT_PNG_COMPRESSION_LEVEL,
+    DEFAULT_WEBP_METHOD,
+    RGB_MODE,
+    RGBA_MODE,
+    LA_MODE,
+    P_MODE,
+)
 
 
-def optimize_image(input_path, output_path=None, max_width=1920, max_height=1080,
-                   quality=85, format=None):
+def optimize_image(input_path, output_path=None, max_width=DEFAULT_MAX_WEB_WIDTH,
+                   max_height=DEFAULT_MAX_WEB_HEIGHT, quality=DEFAULT_WEB_QUALITY, format=None):
     """
     Optimize an image for web use.
 
@@ -37,11 +49,11 @@ def optimize_image(input_path, output_path=None, max_width=1920, max_height=1080
 
     # Convert RGBA to RGB if saving as JPEG
     output_format = format.upper() if format else img.format
-    if output_format == 'JPEG' and img.mode in ('RGBA', 'LA', 'P'):
-        background = Image.new('RGB', img.size, (255, 255, 255))
-        if img.mode == 'P':
-            img = img.convert('RGBA')
-        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+    if output_format == 'JPEG' and img.mode in (RGBA_MODE, LA_MODE, P_MODE):
+        background = Image.new(RGB_MODE, img.size, (255, 255, 255))
+        if img.mode == P_MODE:
+            img = img.convert(RGBA_MODE)
+        background.paste(img, mask=img.split()[-1] if img.mode in (RGBA_MODE, LA_MODE) else None)
         img = background
 
     # Resize if needed
@@ -63,10 +75,10 @@ def optimize_image(input_path, output_path=None, max_width=1920, max_height=1080
         save_kwargs['quality'] = quality
         save_kwargs['progressive'] = True
     elif output_format == 'PNG':
-        save_kwargs['compress_level'] = 9
+        save_kwargs['compress_level'] = DEFAULT_PNG_COMPRESSION_LEVEL
     elif output_format == 'WEBP':
         save_kwargs['quality'] = quality
-        save_kwargs['method'] = 6
+        save_kwargs['method'] = DEFAULT_WEBP_METHOD
 
     img.save(output_path, **save_kwargs)
 
@@ -97,9 +109,8 @@ def optimize_directory(input_dir, output_dir=None, **kwargs):
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    image_extensions = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff'}
     image_files = [f for f in input_dir.iterdir()
-                   if f.is_file() and f.suffix.lower() in image_extensions]
+                   if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS]
 
     if not image_files:
         print(f"No images found in {input_dir}")
@@ -141,12 +152,12 @@ Examples:
     parser.add_argument('-o', '--output', help='Output file path')
     parser.add_argument('--dir', help='Process all images in directory')
     parser.add_argument('--output-dir', help='Output directory (for --dir mode)')
-    parser.add_argument('--max-width', type=int, default=1920,
-                       help='Maximum width (default: 1920)')
-    parser.add_argument('--max-height', type=int, default=1080,
-                       help='Maximum height (default: 1080)')
-    parser.add_argument('--quality', type=int, default=85,
-                       help='Quality for JPEG/WebP (1-100, default: 85)')
+    parser.add_argument('--max-width', type=int, default=DEFAULT_MAX_WEB_WIDTH,
+                       help=f'Maximum width (default: {DEFAULT_MAX_WEB_WIDTH})')
+    parser.add_argument('--max-height', type=int, default=DEFAULT_MAX_WEB_HEIGHT,
+                       help=f'Maximum height (default: {DEFAULT_MAX_WEB_HEIGHT})')
+    parser.add_argument('--quality', type=int, default=DEFAULT_WEB_QUALITY,
+                       help=f'Quality for JPEG/WebP (1-100, default: {DEFAULT_WEB_QUALITY})')
     parser.add_argument('--format', choices=['jpg', 'png', 'webp'],
                        help='Output format (jpg, png, webp)')
 
