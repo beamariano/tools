@@ -16,9 +16,7 @@ from constants import (
     DEFAULT_PNG_COMPRESSION_LEVEL,
     DEFAULT_WEBP_METHOD,
     RGB_MODE,
-    RGBA_MODE,
-    LA_MODE,
-    P_MODE,
+    MODES_REQUIRING_RGB_CONVERSION,
 )
 from messages import (
     msg,
@@ -64,12 +62,12 @@ def optimize_image(
 
     # Convert RGBA to RGB if saving as JPEG
     output_format = format.upper() if format else img.format
-    if output_format == "JPEG" and img.mode in (RGBA_MODE, LA_MODE, P_MODE):
+    if output_format == "JPEG" and img.mode in MODES_REQUIRING_RGB_CONVERSION:
         background = Image.new(RGB_MODE, img.size, (255, 255, 255))
-        if img.mode == P_MODE:
-            img = img.convert(RGBA_MODE)
+        if img.mode == "P":
+            img = img.convert("RGBA")
         background.paste(
-            img, mask=img.split()[-1] if img.mode in (RGBA_MODE, LA_MODE) else None
+            img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None
         )
         img = background
 
@@ -86,7 +84,7 @@ def optimize_image(
         output_path = Path(output_path)
 
     # Save optimized image
-    save_kwargs = {"optimize": True}
+    save_kwargs: dict = {"optimize": True}
 
     if output_format in ("JPEG", "JPG"):
         save_kwargs["quality"] = quality

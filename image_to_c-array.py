@@ -74,17 +74,21 @@ def image_to_header(
     # Apply flips if requested
     if flip_horizontal:
         msg.info("Flipping horizontally")
-        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
 
     if flip_vertical:
         msg.info("Flipping vertically")
-        img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
     # Convert to JPEG in memory
     jpeg_buffer = io.BytesIO()
     msg.info(f"Encoding JPEG (quality={quality}, optimize={optimize})")
     img.save(
-        jpeg_buffer, format="JPEG", quality=quality, optimize=optimize, subsampling=JPEG_SUBSAMPLING_420
+        jpeg_buffer,
+        format="JPEG",
+        quality=quality,
+        optimize=optimize,
+        subsampling=JPEG_SUBSAMPLING_420,
     )
     jpeg_data = jpeg_buffer.getvalue()
     jpeg_size = len(jpeg_data)
@@ -99,10 +103,10 @@ def image_to_header(
         f.write(f"// Generated from: {os.path.basename(input_path)}\n")
         f.write(f"// Size: {target_width}x{target_height} pixels\n")
         f.write(f"// JPEG size: {jpeg_size} bytes\n")
-        f.write(f"\n")
+        f.write("\n")
 
         # Write array declaration
-        f.write(f"const unsigned char photoData[] PROGMEM = {{\n")
+        f.write("const unsigned char photoData[] PROGMEM = {{\n")
 
         # Write bytes in groups per line
         for i in range(0, jpeg_size, DEFAULT_BYTES_PER_LINE):
