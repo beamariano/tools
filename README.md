@@ -146,3 +146,104 @@ python3 image_to_c-array.py webcam.jpg webcam.h 240 320 75 --flip-h
 - High-quality Lanczos resampling is used for resizing
 - JPEG subsampling is set to 4:2:0 for better compression
 - The `PROGMEM` attribute stores data in flash memory instead of RAM on ESP32/Arduino
+
+## Image to Video Converter
+
+Convert images (or folders of images) into videos with configurable duration, dimensions, format, and fade effects.
+
+### Features
+
+- Convert single images or entire folders to videos
+- Configurable video duration (default: 4 seconds)
+- Optional fade in/out effects
+- Custom output dimensions (resize videos)
+- Multiple output formats supported
+- Adjustable FPS and codec settings
+- Supports common image formats: JPG, PNG, GIF, BMP, WebP, TIFF
+
+### Requirements
+
+```bash
+pip install moviepy
+```
+
+### Usage
+
+#### Basic Usage
+
+```bash
+# Convert a single image
+python image_to_video.py image.jpg
+
+# Convert all images in a folder
+python image_to_video.py photos/
+```
+
+#### With Options
+
+```bash
+# Custom duration (10 seconds)
+python image_to_video.py image.jpg -d 10
+
+# Specify output folder
+python image_to_video.py photos/ -o output_videos/
+
+# Resize to specific dimensions
+python image_to_video.py photos/ -s 1920x1080
+
+# Add fade effects (1 second fade in, 1.5 second fade out)
+python image_to_video.py photos/ --fade-in 1 --fade-out 1.5
+
+# Change output format
+python image_to_video.py photos/ -f avi
+
+# Combine multiple options
+python image_to_video.py photos/ -o videos/ -d 5 -s 1280x720 --fade-in 0.5 --fade-out 0.5 --fps 30
+```
+
+### Command-Line Arguments
+
+| Argument | Short | Description | Default |
+|----------|-------|-------------|---------|
+| `input` | - | Input image file or folder (required) | - |
+| `--output` | `-o` | Output folder | `./videos` |
+| `--duration` | `-d` | Video duration in seconds | `4` |
+| `--format` | `-f` | Output format (mp4, avi, etc.) | `mp4` |
+| `--size` | `-s` | Output size as WIDTHxHEIGHT | Original size |
+| `--fps` | - | Frames per second | `24` |
+| `--codec` | - | Video codec | `libx264` |
+| `--fade-in` | - | Fade in duration in seconds | `0` (disabled) |
+| `--fade-out` | - | Fade out duration in seconds | `0` (disabled) |
+
+### Examples
+
+#### Convert vacation photos to 5-second videos with fades
+
+```bash
+python image_to_video.py vacation_photos/ -d 5 --fade-in 1 --fade-out 1
+```
+
+#### Create Instagram-ready videos (1080x1080)
+
+```bash
+python image_to_video.py photos/ -s 1080x1080 -d 3
+```
+
+#### High-quality videos for presentations
+
+```bash
+python image_to_video.py slides/ -s 1920x1080 -d 8 --fps 30
+```
+
+### Supported Image Formats
+
+- JPEG (`.jpg`, `.jpeg`)
+- PNG (`.png`)
+- GIF (`.gif`)
+- BMP (`.bmp`)
+- WebP (`.webp`)
+- TIFF (`.tiff`)
+
+### Output
+
+Videos are saved to the specified output folder (default: `./videos/`) with the same filename as the source image but with the chosen video format extension.
