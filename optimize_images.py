@@ -17,6 +17,8 @@ from constants import (
     DEFAULT_WEBP_METHOD,
     RGB_MODE,
     MODES_REQUIRING_RGB_CONVERSION,
+    DEFAULT_IMAGES_INPUT_DIR,
+    DEFAULT_IMAGES_OUTPUT_DIR,
 )
 from messages import (
     msg,
@@ -25,6 +27,8 @@ from messages import (
     dimensions_info,
     batch_started,
     batch_completed,
+    folder_created_info,
+    folder_setup_instructions,
     Operation,
     handle_exception,
 )
@@ -117,9 +121,16 @@ def optimize_directory(input_dir, output_dir=None, **kwargs):
     """
     input_dir = Path(input_dir)
 
+    # Check if input directory exists
+    if not input_dir.exists():
+        msg.error(f"Input directory '{input_dir}' does not exist")
+        msg.info(folder_setup_instructions(str(input_dir), str(output_dir) if output_dir else None))
+        return
+
     if output_dir:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
+        msg.info(folder_created_info(str(output_dir)))
 
     image_files = [
         f
@@ -128,7 +139,8 @@ def optimize_directory(input_dir, output_dir=None, **kwargs):
     ]
 
     if not image_files:
-        msg.error(f"No images found in {input_dir}")
+        msg.error(f"No images found in '{input_dir}'")
+        msg.info(folder_setup_instructions(str(input_dir), str(output_dir) if output_dir else None))
         return
 
     batch_started(len(image_files), "images")
@@ -171,14 +183,20 @@ Examples:
     python optimize_images.py input.jpg --format webp
 
   Optimize entire directory:
-    python optimize_images.py --dir images/ --output-dir optimized/
+    python optimize_images.py --dir images_to_process/ --output-dir images_processed/
         """,
     )
 
     parser.add_argument("input", nargs="?", help="Input image file")
     parser.add_argument("-o", "--output", help="Output file path")
-    parser.add_argument("--dir", help="Process all images in directory")
-    parser.add_argument("--output-dir", help="Output directory (for --dir mode)")
+    parser.add_argument(
+        "--dir",
+        help=f"Process all images in directory (default: {DEFAULT_IMAGES_INPUT_DIR})",
+    )
+    parser.add_argument(
+        "--output-dir",
+        help=f"Output directory for --dir mode (default: {DEFAULT_IMAGES_OUTPUT_DIR})",
+    )
     parser.add_argument(
         "--max-width",
         type=int,

@@ -13,12 +13,15 @@ from constants import (
     DEFAULT_VIDEO_CODEC,
     DEFAULT_VIDEO_FORMAT,
     DEFAULT_VIDEO_OUTPUT_DIR,
+    DEFAULT_IMAGES_INPUT_DIR,
 )
 from messages import (
     msg,
     batch_started,
     batch_completed,
     processing_started,
+    folder_created_info,
+    folder_setup_instructions,
     Emoji,
     use_emoji,
 )
@@ -45,7 +48,7 @@ def image_to_video(
         if fade_out > 0:
             effects.append(FadeOut(fade_out))
         clip = clip.with_effects(effects)
-    clip.write_videofile(str(output_path), fps=fps, codec=codec, audio=False)
+    clip.write_videofile(str(output_path), fps=fps, codec=codec, audio=False)  # type: ignore[attr-defined]
 
     # Display success with emoji if supported
     check = Emoji.CHECK if use_emoji() else "✓"
@@ -53,10 +56,18 @@ def image_to_video(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert images to videos")
-    parser.add_argument("input", help="Input image file or folder")
+    parser = argparse.ArgumentParser(
+        description="Convert images to videos",
+        epilog=f"Default: Input from '{DEFAULT_IMAGES_INPUT_DIR}/', output to '{DEFAULT_VIDEO_OUTPUT_DIR}/'",
+    )
     parser.add_argument(
-        "-o", "--output", help=f"Output folder (default: ./{DEFAULT_VIDEO_OUTPUT_DIR})"
+        "input",
+        nargs="?",
+        default=DEFAULT_IMAGES_INPUT_DIR,
+        help=f"Input image file or folder (default: {DEFAULT_IMAGES_INPUT_DIR})",
+    )
+    parser.add_argument(
+        "-o", "--output", help=f"Output folder (default: {DEFAULT_VIDEO_OUTPUT_DIR})"
     )
     parser.add_argument(
         "-d",
@@ -102,7 +113,17 @@ def main():
 
     input_path = Path(args.input)
     output_dir = Path(args.output or DEFAULT_VIDEO_OUTPUT_DIR)
+
+    # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
+    if not output_dir.exists() or len(list(output_dir.iterdir())) == 0:
+        msg.info(folder_created_info(str(output_dir)))
+
+    # Check if input exists
+    if not input_path.exists():
+        msg.error(f"Input path '{input_path}' does not exist")
+        msg.info(folder_setup_instructions(str(input_path), str(output_dir)))
+        return
 
     size = tuple(map(int, args.size.split("x"))) if args.size else None
 
@@ -118,7 +139,8 @@ def main():
     )
 
     if not images:
-        msg.error(f"No images found. Supported: {', '.join(sorted(IMAGE_EXTENSIONS))}")
+        msg.error(f"No images found in '{input_path}'. Supported: {', '.join(sorted(IMAGE_EXTENSIONS))}")
+        msg.info(folder_setup_instructions(str(input_path), str(output_dir)))
         return
 
     batch_started(len(images), "image(s)")

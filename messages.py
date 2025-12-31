@@ -270,6 +270,120 @@ def use_emoji():
     return sys.stdout.isatty() and sys.stdout.encoding.lower() in ['utf-8', 'utf8']
 
 
+# Format conversion messages
+def transparency_loss_warning(source_format, target_format):
+    """Warning for losing transparency during conversion."""
+    return f"Converting from {source_format} to {target_format} will lose transparency"
+
+
+def quality_loss_warning(source_format, target_format):
+    """Warning for losing quality during conversion."""
+    return f"Converting from lossless {source_format} to lossy {target_format} will degrade quality"
+
+
+def jpeg_transparency_warning():
+    """Warning for JPEG not supporting transparency."""
+    return "JPEG does not support transparency. Consider using PNG or WEBP instead."
+
+
+def unsupported_extension_error(extension):
+    """Error message for unsupported file extensions."""
+    return f"Unsupported file extension: {extension}"
+
+
+def unsupported_format_error(format_name):
+    """Error message for unsupported formats."""
+    return f"Unsupported format: {format_name}"
+
+
+# Video processing messages
+def video_open_error(video_path):
+    """Error message for video opening failure."""
+    return f"Could not open video {video_path}"
+
+
+def video_no_frames_error(video_path):
+    """Error message for video with no frames."""
+    return f"No frames in {video_path}"
+
+
+def video_processing_error(video_path, reason):
+    """Error message for video processing failure."""
+    return f"Error processing {video_path}: {reason}"
+
+
+def folder_not_exist_error(folder_path):
+    """Error message for non-existent folder."""
+    return f"Folder '{folder_path}' does not exist"
+
+
+def invalid_input_warning(default_value):
+    """Warning for invalid input."""
+    return f"Invalid input. Using default: {default_value}"
+
+
+def invalid_choice_error():
+    """Error message for invalid choice."""
+    return "Invalid choice!"
+
+
+def video_mapped_success(filename, original_duration, target_duration):
+    """Success message for video mapping."""
+    return f"Mapped {filename}: {filename} (original: {original_duration:.2f}s, set to: {target_duration:.2f}s)"
+
+
+def video_mapping_error(filename):
+    """Error message for video mapping failure."""
+    return f"Error processing {filename}"
+
+
+def mapping_saved_success(output_file):
+    """Success message for mapping file saved."""
+    return f"Mapping saved to '{output_file}'"
+
+
+def total_processed_info(count):
+    """Info message for total videos processed."""
+    return f"Total videos processed: {count}"
+
+
+def video_created_success(output_video, duration):
+    """Success message for video creation."""
+    return f"Created {output_video} with {duration:.2f}s duration"
+
+
+def processing_videos_info(duration):
+    """Info message for processing videos."""
+    return f"Processing videos to {duration:.2f}s duration..."
+
+
+def batch_complete_success(count, duration):
+    """Success message for batch processing completion."""
+    return f"Processed {count} videos to {duration:.2f}s"
+
+
+def output_saved_info(folder):
+    """Info message for output saved."""
+    return f"Output saved to '{folder}' folder"
+
+
+def folder_created_info(folder):
+    """Info message for folder creation."""
+    return f"Created folder: '{folder}'"
+
+
+def folder_setup_instructions(input_folder, output_folder=None):
+    """Instructions for setting up required folders."""
+    if output_folder:
+        return f"Place your files in '{input_folder}/' folder. Output will be saved to '{output_folder}/'"
+    return f"Place your files in '{input_folder}/' folder"
+
+
+def checking_folder_info(folder):
+    """Info message for checking folder existence."""
+    return f"Checking for '{folder}' folder..."
+
+
 # Helper context manager for operation tracking
 class Operation:
     """Context manager for tracking operations with start/end messages."""
@@ -284,7 +398,7 @@ class Operation:
         """
         self.name = name
         self.show_duration = show_duration
-        self.start_time = None
+        self.start_time: float = 0.0
 
     def __enter__(self):
         """Start operation."""

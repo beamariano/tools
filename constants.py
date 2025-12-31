@@ -85,9 +85,24 @@ DEFAULT_VIDEO_FPS = 24
 DEFAULT_VIDEO_CODEC = 'libx264'
 DEFAULT_VIDEO_FORMAT = 'mp4'
 
+# Common folder defaults
+DEFAULT_IMAGES_INPUT_DIR = "images_to_process"
+DEFAULT_IMAGES_OUTPUT_DIR = "images_processed"
+DEFAULT_VIDEOS_INPUT_DIR = "videos_to_process"
+DEFAULT_VIDEOS_OUTPUT_DIR = "videos_processed"
+
+# Video duration adjustment defaults
+DEFAULT_MAPPING_FILE = "video_mapping.txt"
+DEFAULT_TARGET_DURATION = 3.0
+DEFAULT_FADE_DURATION = 0.5
+
+# Legacy aliases for backward compatibility
+DEFAULT_INPUT_FOLDER = DEFAULT_VIDEOS_INPUT_DIR
+DEFAULT_OUTPUT_FOLDER = DEFAULT_VIDEOS_OUTPUT_DIR
+
 # Output defaults
 DEFAULT_HEADER_OUTPUT = 'photoData.h'
-DEFAULT_VIDEO_OUTPUT_DIR = 'videos'
+DEFAULT_VIDEO_OUTPUT_DIR = DEFAULT_VIDEOS_OUTPUT_DIR  # For image_to_video.py
 DEFAULT_ARRAY_NAME = 'photoData'
 
 # Image processing modes
@@ -142,6 +157,31 @@ class VideoCodec(Enum):
     VP9 = "libvpx-vp9"
     AV1 = "libaom-av1"
     MPEG4 = "mpeg4"
+
+
+# Quality settings for different use cases
+QUALITY_THUMBNAIL = "thumbnail"
+QUALITY_WEB = "web"
+QUALITY_ARCHIVE = "archive"
+
+# Quality recommendations by format and use case
+QUALITY_RECOMMENDATIONS = {
+    QUALITY_THUMBNAIL: {"JPEG": 60, "WEBP": 65},
+    QUALITY_WEB: {"JPEG": 85, "WEBP": 85},
+    QUALITY_ARCHIVE: {"JPEG": 95, "WEBP": 95},
+}
+
+# Default quality fallback
+DEFAULT_QUALITY_FALLBACK = 85
+
+# Lossless format quality (always 100)
+LOSSLESS_QUALITY = 100
+
+# Format name constants for comparison
+FORMAT_JPEG = "JPEG"
+FORMAT_PNG = "PNG"
+FORMAT_WEBP = "WEBP"
+FORMAT_GIF = "GIF"
 
 
 # Format validation helpers

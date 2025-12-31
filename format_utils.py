@@ -18,9 +18,26 @@ from constants import (
     LOSSLESS_FORMATS,
     TRANSPARENCY_FORMATS,
     ANIMATION_FORMATS,
+    # Quality settings
+    QUALITY_WEB,
+    QUALITY_RECOMMENDATIONS,
+    DEFAULT_QUALITY_FALLBACK,
+    LOSSLESS_QUALITY,
+    # Format name constants
+    FORMAT_JPEG,
+    FORMAT_PNG,
+    FORMAT_WEBP,
+    # Helpers
     is_image_file,
     is_video_file,
     is_lossy_format,
+)
+from messages import (
+    transparency_loss_warning,
+    quality_loss_warning,
+    jpeg_transparency_warning,
+    unsupported_extension_error,
+    unsupported_format_error,
 )
 
 
@@ -40,7 +57,7 @@ def get_format_from_filename(filename: str) -> str:
     ext = Path(filename).suffix.lower()
     if ext in EXTENSION_TO_FORMAT:
         return EXTENSION_TO_FORMAT[ext]
-    raise ValueError(f"Unsupported file extension: {ext}")
+    raise ValueError(unsupported_extension_error(ext))
 
 
 def get_extension_for_format(format_name: str) -> str:
@@ -59,10 +76,10 @@ def get_extension_for_format(format_name: str) -> str:
     format_upper = format_name.upper()
     if format_upper in IMAGE_FORMAT_EXTENSIONS:
         return IMAGE_FORMAT_EXTENSIONS[format_upper]
-    raise ValueError(f"Unsupported format: {format_name}")
+    raise ValueError(unsupported_format_error(format_name))
 
 
-def get_recommended_quality(format_name: str, use_case: str = "web") -> int:
+def get_recommended_quality(format_name: str, use_case: str = QUALITY_WEB) -> int:
     """
     Get recommended quality setting for a format.
 
@@ -76,15 +93,11 @@ def get_recommended_quality(format_name: str, use_case: str = "web") -> int:
     format_upper = format_name.upper()
 
     if not is_lossy_format(format_upper):
-        return 100  # Lossless formats don't use quality settings
+        return LOSSLESS_QUALITY
 
-    quality_map = {
-        "thumbnail": {"JPEG": 60, "WEBP": 65},
-        "web": {"JPEG": 85, "WEBP": 85},
-        "archive": {"JPEG": 95, "WEBP": 95},
-    }
-
-    return quality_map.get(use_case, quality_map["web"]).get(format_upper, 85)
+    return QUALITY_RECOMMENDATIONS.get(use_case, QUALITY_RECOMMENDATIONS[QUALITY_WEB]).get(
+        format_upper, DEFAULT_QUALITY_FALLBACK
+    )
 
 
 def should_convert_format(
@@ -119,23 +132,17 @@ def should_convert_format(
     if has_transparency:
         if source in TRANSPARENCY_FORMATS and target not in TRANSPARENCY_FORMATS:
             result["will_lose_transparency"] = True
-            result["warnings"].append(
-                f"Converting from {source} to {target} will lose transparency"
-            )
+            result["warnings"].append(transparency_loss_warning(source, target))
 
     # Check quality loss
     if source in LOSSLESS_FORMATS and target in LOSSY_FORMATS:
         result["will_lose_quality"] = True
-        result["warnings"].append(
-            f"Converting from lossless {source} to lossy {target} will degrade quality"
-        )
+        result["warnings"].append(quality_loss_warning(source, target))
 
     # Check if conversion is recommended
-    if target == "JPEG" and has_transparency:
+    if target == FORMAT_JPEG and has_transparency:
         result["recommended"] = False
-        result["warnings"].append(
-            "JPEG does not support transparency. Consider using PNG or WEBP instead."
-        )
+        result["warnings"].append(jpeg_transparency_warning())
 
     return result
 
@@ -155,13 +162,13 @@ def get_optimal_output_format(
         Recommended output format name
     """
     if has_transparency:
-        return "WEBP" if prefer_modern else "PNG"
+        return FORMAT_WEBP if prefer_modern else FORMAT_PNG
 
     if input_format.upper() in ANIMATION_FORMATS:
-        return "WEBP" if prefer_modern else input_format.upper()
+        return FORMAT_WEBP if prefer_modern else input_format.upper()
 
     # For photos/regular images
-    return "WEBP" if prefer_modern else "JPEG"
+    return FORMAT_WEBP if prefer_modern else FORMAT_JPEG
 
 
 def format_info(format_name: str) -> dict:
@@ -219,9 +226,9 @@ def main():
     # Example 3: Format conversions
     print("\n3. Format Conversion Analysis:")
     conversions = [
-        ("PNG", "JPEG", True),
-        ("PNG", "WEBP", True),
-        ("JPEG", "PNG", False),
+        (ImageFormat.PNG.value, ImageFormat.JPEG.value, True),
+        (ImageFormat.PNG.value, ImageFormat.WEBP.value, True),
+        (ImageFormat.JPEG.value, ImageFormat.PNG.value, False),
     ]
 
     for source, target, has_alpha in conversions:
@@ -237,9 +244,9 @@ def main():
     # Example 4: Optimal format selection
     print("\n4. Optimal Format Selection:")
     scenarios = [
-        ("PNG", True, True, "Transparent logo"),
-        ("JPEG", False, True, "Photo for web"),
-        ("GIF", False, True, "Animation"),
+        (ImageFormat.PNG.value, True, True, "Transparent logo"),
+        (ImageFormat.JPEG.value, False, True, "Photo for web"),
+        (ImageFormat.GIF.value, False, True, "Animation"),
     ]
 
     for input_fmt, has_trans, prefer_mod, desc in scenarios:
