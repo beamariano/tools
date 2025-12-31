@@ -247,3 +247,123 @@ python image_to_video.py slides/ -s 1920x1080 -d 8 --fps 30
 ### Output
 
 Videos are saved to the specified output folder (default: `./videos/`) with the same filename as the source image but with the chosen video format extension.
+
+## Image Optimizer for Web
+
+Optimize images for web use by compressing and resizing them while maintaining quality. Supports batch processing and multiple output formats.
+
+### Features
+
+- **Smart Compression**: Optimize JPEG, PNG, and WebP images
+- **Auto Resize**: Set maximum dimensions (default: 1920x1080)
+- **Quality Control**: Adjustable quality for JPEG/WebP (1-100, default: 85)
+- **Format Conversion**: Convert between JPG, PNG, and WebP
+- **Batch Processing**: Optimize entire directories at once
+- **Progressive JPEG**: Generates progressive JPEGs for faster web loading
+- **RGBA Handling**: Automatically converts RGBA to RGB for JPEG compatibility
+- **Size Reports**: Shows original vs optimized file sizes and reduction percentage
+
+### Requirements
+
+```bash
+pip install Pillow
+```
+
+### Usage
+
+#### Optimize a Single Image
+
+```bash
+# Basic optimization
+python optimize_images.py image.jpg
+
+# With custom output path
+python optimize_images.py image.jpg -o optimized.jpg
+
+# Custom quality and dimensions
+python optimize_images.py image.jpg --quality 90 --max-width 1280 --max-height 720
+
+# Convert to WebP format
+python optimize_images.py image.jpg --format webp
+```
+
+#### Batch Optimize a Directory
+
+```bash
+# Optimize all images in a folder
+python optimize_images.py --dir photos/
+
+# Specify output directory
+python optimize_images.py --dir photos/ --output-dir optimized_photos/
+
+# With custom settings
+python optimize_images.py --dir photos/ --output-dir web_images/ --quality 80 --max-width 1920
+```
+
+### Command-Line Arguments
+
+#### Single File Mode
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `input` | Input image file | Required |
+| `-o, --output` | Output file path | `{input}_optimized.{ext}` |
+| `--max-width` | Maximum width in pixels | `1920` |
+| `--max-height` | Maximum height in pixels | `1080` |
+| `--quality` | Quality for JPEG/WebP (1-100) | `85` |
+| `--format` | Output format: jpg, png, webp | Same as input |
+
+#### Directory Mode
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--dir` | Input directory containing images | Required |
+| `--output-dir` | Output directory | Same as input |
+| `--max-width` | Maximum width in pixels | `1920` |
+| `--max-height` | Maximum height in pixels | `1080` |
+| `--quality` | Quality for JPEG/WebP (1-100) | `85` |
+| `--format` | Output format: jpg, png, webp | Same as input |
+
+### Examples
+
+#### Optimize product images for e-commerce
+
+```bash
+python optimize_images.py --dir product_photos/ --output-dir web_products/ --max-width 1200 --quality 85
+```
+
+#### Create thumbnail-sized WebP images
+
+```bash
+python optimize_images.py --dir photos/ --output-dir thumbnails/ --max-width 400 --max-height 400 --format webp
+```
+
+#### High-quality optimization for photography portfolio
+
+```bash
+python optimize_images.py portfolio.jpg -o portfolio_web.jpg --quality 95 --max-width 2560
+```
+
+#### Batch convert PNGs to optimized JPEGs
+
+```bash
+python optimize_images.py --dir screenshots/ --output-dir web_screenshots/ --format jpg --quality 80
+```
+
+### Optimization Details
+
+- **JPEG**: Uses progressive encoding, quality setting, and optimization flag
+- **PNG**: Maximum compression (level 9) with optimization
+- **WebP**: Quality setting with method 6 (best compression/quality ratio)
+- **Resizing**: Uses Lanczos resampling for high-quality downscaling
+- **RGBA to RGB**: Transparent backgrounds converted to white when saving as JPEG
+
+### Output Example
+
+```
+Processing image.jpg...
+Resized to 1920x1080
+Original: 2450.32 KB
+Optimized: 856.12 KB
+Reduction: 65.1%
+```
