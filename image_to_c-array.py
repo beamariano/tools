@@ -18,6 +18,15 @@ from constants import (
     RGB_MODE,
     JPEG_SUBSAMPLING_420,
 )
+from messages import (
+    msg,
+    file_not_found,
+    file_created,
+    processing_started,
+    dimensions_info,
+    Operation,
+    handle_exception,
+)
 
 
 def image_to_header(
@@ -48,42 +57,42 @@ def image_to_header(
     """
 
     # Open and convert image
-    print(f"Loading image: {input_path}")
+    processing_started("Loading image", input_path)
     img = Image.open(input_path)
 
     # Convert to RGB if necessary
     if img.mode != RGB_MODE:
-        print(f"Converting from {img.mode} to {RGB_MODE} mode")
+        msg.info(f"Converting from {img.mode} to {RGB_MODE} mode")
         img = img.convert(RGB_MODE)
 
     # Resize image to target dimensions
     original_size = img.size
-    print(f"Original size: {original_size[0]}x{original_size[1]}")
-    print(f"Resizing to: {target_width}x{target_height}")
+    msg.info(f"Original size: {original_size[0]}x{original_size[1]}")
+    dimensions_info(target_width, target_height, "Resizing to")
     img = img.resize((target_width, target_height), Image.Resampling.LANCZOS)
 
     # Apply flips if requested
     if flip_horizontal:
-        print("Flipping horizontally")
+        msg.info("Flipping horizontally")
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
 
     if flip_vertical:
-        print("Flipping vertically")
+        msg.info("Flipping vertically")
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
 
     # Convert to JPEG in memory
     jpeg_buffer = io.BytesIO()
-    print(f"Encoding JPEG (quality={quality}, optimize={optimize})")
+    msg.info(f"Encoding JPEG (quality={quality}, optimize={optimize})")
     img.save(
         jpeg_buffer, format="JPEG", quality=quality, optimize=optimize, subsampling=JPEG_SUBSAMPLING_420
     )
     jpeg_data = jpeg_buffer.getvalue()
     jpeg_size = len(jpeg_data)
 
-    print(f"JPEG size: {jpeg_size} bytes ({jpeg_size / 1024:.2f} KB)")
+    msg.info(f"JPEG size: {jpeg_size} bytes ({jpeg_size / 1024:.2f} KB)")
 
     # Generate C header file
-    print(f"Writing header file: {output_path}")
+    msg.info(f"Writing header file: {output_path}")
 
     with open(output_path, "w") as f:
         # Write header comments
@@ -107,8 +116,8 @@ def image_to_header(
 
         f.write("};\n")
 
-    print(f"Done! Generated {output_path}")
-    print(f'Include this file in your Arduino sketch with: #include "{output_path}"')
+    file_created(output_path, jpeg_size / 1024)
+    msg.info(f'Include this file in your Arduino sketch with: #include "{output_path}"')
 
 
 def main():
@@ -154,19 +163,23 @@ def main():
     quality = int(args[4]) if len(args) > 4 else DEFAULT_JPEG_QUALITY
 
     if not os.path.exists(input_path):
-        print(f"Error: Input file '{input_path}' not found!")
-        sys.exit(1)
+        file_not_found(input_path)
 
-    image_to_header(
-        input_path,
-        output_path,
-        width,
-        height,
-        quality,
-        flip_horizontal=flip_h,
-        flip_vertical=flip_v,
-        optimize=not no_optimize,
-    )
+    try:
+        with Operation("Image to C array conversion"):
+            image_to_header(
+                input_path,
+                output_path,
+                width,
+                height,
+                quality,
+                flip_horizontal=flip_h,
+                flip_vertical=flip_v,
+                optimize=not no_optimize,
+            )
+    except Exception as e:
+        exit_code = handle_exception(e)
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@ Image optimization tool for web.
 Compresses and resizes images while maintaining quality.
 """
 
-import os
 import sys
 from pathlib import Path
 from PIL import Image
@@ -21,10 +20,26 @@ from constants import (
     LA_MODE,
     P_MODE,
 )
+from messages import (
+    msg,
+    processing_started,
+    size_info,
+    dimensions_info,
+    batch_started,
+    batch_completed,
+    Operation,
+    handle_exception,
+)
 
 
-def optimize_image(input_path, output_path=None, max_width=DEFAULT_MAX_WEB_WIDTH,
-                   max_height=DEFAULT_MAX_WEB_HEIGHT, quality=DEFAULT_WEB_QUALITY, format=None):
+def optimize_image(
+    input_path,
+    output_path=None,
+    max_width=DEFAULT_MAX_WEB_WIDTH,
+    max_height=DEFAULT_MAX_WEB_HEIGHT,
+    quality=DEFAULT_WEB_QUALITY,
+    format=None,
+):
     """
     Optimize an image for web use.
 
@@ -49,17 +64,19 @@ def optimize_image(input_path, output_path=None, max_width=DEFAULT_MAX_WEB_WIDTH
 
     # Convert RGBA to RGB if saving as JPEG
     output_format = format.upper() if format else img.format
-    if output_format == 'JPEG' and img.mode in (RGBA_MODE, LA_MODE, P_MODE):
+    if output_format == "JPEG" and img.mode in (RGBA_MODE, LA_MODE, P_MODE):
         background = Image.new(RGB_MODE, img.size, (255, 255, 255))
         if img.mode == P_MODE:
             img = img.convert(RGBA_MODE)
-        background.paste(img, mask=img.split()[-1] if img.mode in (RGBA_MODE, LA_MODE) else None)
+        background.paste(
+            img, mask=img.split()[-1] if img.mode in (RGBA_MODE, LA_MODE) else None
+        )
         img = background
 
     # Resize if needed
     if img.width > max_width or img.height > max_height:
         img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-        print(f"Resized to {img.width}x{img.height}")
+        dimensions_info(img.width, img.height, "Resized")
 
     # Determine output path
     if output_path is None:
@@ -69,27 +86,24 @@ def optimize_image(input_path, output_path=None, max_width=DEFAULT_MAX_WEB_WIDTH
         output_path = Path(output_path)
 
     # Save optimized image
-    save_kwargs = {'optimize': True}
+    save_kwargs = {"optimize": True}
 
-    if output_format in ('JPEG', 'JPG'):
-        save_kwargs['quality'] = quality
-        save_kwargs['progressive'] = True
-    elif output_format == 'PNG':
-        save_kwargs['compress_level'] = DEFAULT_PNG_COMPRESSION_LEVEL
-    elif output_format == 'WEBP':
-        save_kwargs['quality'] = quality
-        save_kwargs['method'] = DEFAULT_WEBP_METHOD
+    if output_format in ("JPEG", "JPG"):
+        save_kwargs["quality"] = quality
+        save_kwargs["progressive"] = True
+    elif output_format == "PNG":
+        save_kwargs["compress_level"] = DEFAULT_PNG_COMPRESSION_LEVEL
+    elif output_format == "WEBP":
+        save_kwargs["quality"] = quality
+        save_kwargs["method"] = DEFAULT_WEBP_METHOD
 
     img.save(output_path, **save_kwargs)
 
     # Print size comparison
     original_size = input_path.stat().st_size
     optimized_size = output_path.stat().st_size
-    reduction = ((original_size - optimized_size) / original_size) * 100
 
-    print(f"Original: {original_size / 1024:.2f} KB")
-    print(f"Optimized: {optimized_size / 1024:.2f} KB")
-    print(f"Reduction: {reduction:.1f}%")
+    size_info(original_size / 1024, optimized_size / 1024)
 
     return output_path
 
@@ -109,28 +123,43 @@ def optimize_directory(input_dir, output_dir=None, **kwargs):
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    image_files = [f for f in input_dir.iterdir()
-                   if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS]
+    image_files = [
+        f
+        for f in input_dir.iterdir()
+        if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS
+    ]
 
     if not image_files:
-        print(f"No images found in {input_dir}")
+        msg.error(f"No images found in {input_dir}")
         return
 
-    print(f"Found {len(image_files)} images to optimize\n")
+    batch_started(len(image_files), "images")
+
+    success_count = 0
+    fail_count = 0
 
     for img_file in image_files:
-        print(f"Processing {img_file.name}...")
+        processing_started("Processing", img_file)
         try:
             out_path = output_dir / img_file.name if output_dir else None
             optimize_image(img_file, out_path, **kwargs)
+            success_count += 1
             print()
         except Exception as e:
-            print(f"Error processing {img_file.name}: {e}\n")
+            msg.error(f"Error processing {img_file.name}: {e}")
+            fail_count += 1
+            print()
+
+    # Summary
+    if fail_count == 0:
+        batch_completed(success_count, "images")
+    else:
+        msg.warning(f"Completed with {success_count} success, {fail_count} failed")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Optimize images for web use',
+        description="Optimize images for web use",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -145,52 +174,69 @@ Examples:
 
   Optimize entire directory:
     python optimize_images.py --dir images/ --output-dir optimized/
-        """
+        """,
     )
 
-    parser.add_argument('input', nargs='?', help='Input image file')
-    parser.add_argument('-o', '--output', help='Output file path')
-    parser.add_argument('--dir', help='Process all images in directory')
-    parser.add_argument('--output-dir', help='Output directory (for --dir mode)')
-    parser.add_argument('--max-width', type=int, default=DEFAULT_MAX_WEB_WIDTH,
-                       help=f'Maximum width (default: {DEFAULT_MAX_WEB_WIDTH})')
-    parser.add_argument('--max-height', type=int, default=DEFAULT_MAX_WEB_HEIGHT,
-                       help=f'Maximum height (default: {DEFAULT_MAX_WEB_HEIGHT})')
-    parser.add_argument('--quality', type=int, default=DEFAULT_WEB_QUALITY,
-                       help=f'Quality for JPEG/WebP (1-100, default: {DEFAULT_WEB_QUALITY})')
-    parser.add_argument('--format', choices=['jpg', 'png', 'webp'],
-                       help='Output format (jpg, png, webp)')
+    parser.add_argument("input", nargs="?", help="Input image file")
+    parser.add_argument("-o", "--output", help="Output file path")
+    parser.add_argument("--dir", help="Process all images in directory")
+    parser.add_argument("--output-dir", help="Output directory (for --dir mode)")
+    parser.add_argument(
+        "--max-width",
+        type=int,
+        default=DEFAULT_MAX_WEB_WIDTH,
+        help=f"Maximum width (default: {DEFAULT_MAX_WEB_WIDTH})",
+    )
+    parser.add_argument(
+        "--max-height",
+        type=int,
+        default=DEFAULT_MAX_WEB_HEIGHT,
+        help=f"Maximum height (default: {DEFAULT_MAX_WEB_HEIGHT})",
+    )
+    parser.add_argument(
+        "--quality",
+        type=int,
+        default=DEFAULT_WEB_QUALITY,
+        help=f"Quality for JPEG/WebP (1-100, default: {DEFAULT_WEB_QUALITY})",
+    )
+    parser.add_argument(
+        "--format",
+        choices=["jpg", "png", "webp"],
+        help="Output format (jpg, png, webp)",
+    )
 
     args = parser.parse_args()
 
     try:
         if args.dir:
-            optimize_directory(
-                args.dir,
-                args.output_dir,
-                max_width=args.max_width,
-                max_height=args.max_height,
-                quality=args.quality,
-                format=args.format
-            )
+            with Operation("Batch optimization"):
+                optimize_directory(
+                    args.dir,
+                    args.output_dir,
+                    max_width=args.max_width,
+                    max_height=args.max_height,
+                    quality=args.quality,
+                    format=args.format,
+                )
         elif args.input:
-            result = optimize_image(
-                args.input,
-                args.output,
-                max_width=args.max_width,
-                max_height=args.max_height,
-                quality=args.quality,
-                format=args.format
-            )
-            print(f"\nOptimized image saved to: {result}")
+            with Operation("Image optimization"):
+                result = optimize_image(
+                    args.input,
+                    args.output,
+                    max_width=args.max_width,
+                    max_height=args.max_height,
+                    quality=args.quality,
+                    format=args.format,
+                )
+                msg.info(f"Optimized image saved to: {result}")
         else:
             parser.print_help()
             sys.exit(1)
 
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        exit_code = handle_exception(e)
+        sys.exit(exit_code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
