@@ -367,3 +367,143 @@ Original: 2450.32 KB
 Optimized: 856.12 KB
 Reduction: 65.1%
 ```
+
+## Aspect Ratio Changer
+
+Change the aspect ratio of images and videos using either letterboxing (adding bars) or cropping. Supports batch processing with configurable anchor points and letterbox colors.
+
+### Features
+
+- **Dual Modes**: Letterbox (add bars) or Crop (crop to fit)
+- **Common Aspect Ratios**: 16:9, 4:3, 1:1, 9:16, 21:9, or custom dimensions
+- **Flexible Crop Anchors**: Center, upper left, upper right, lower left, or lower right
+- **Configurable Letterbox Colors**: Black, white, gray, or custom RGB colors
+- **Batch Processing**: Process entire folders of images and/or videos
+- **High Quality**: Uses Lanczos interpolation for resizing
+- **Video Support**: Works with images and videos using the same workflow
+
+### Requirements
+
+```bash
+pip install opencv-python numpy
+```
+
+### Usage
+
+#### Interactive Mode
+
+```bash
+python change_aspect_ratio.py
+```
+
+The script will guide you through:
+1. Choosing media type (images, videos, or both)
+2. Selecting input/output folders
+3. Choosing aspect ratio (16:9, 4:3, 1:1, 9:16, 21:9, or custom)
+4. Selecting mode (letterbox or crop)
+5. Configuring letterbox color (if letterbox mode) or crop anchor (if crop mode)
+
+#### Common Aspect Ratios
+
+| Option | Aspect Ratio | Dimensions | Use Case |
+|--------|--------------|------------|----------|
+| 1 | 16:9 | 1920x1080 | Widescreen, YouTube, modern displays |
+| 2 | 4:3 | 1024x768 | Traditional TV, older displays |
+| 3 | 1:1 | 1080x1080 | Instagram posts, square format |
+| 4 | 9:16 | 1080x1920 | Vertical video, mobile, stories |
+| 5 | 21:9 | 2560x1080 | Ultra-wide, cinematic |
+| 6 | Custom | User defined | Specific project requirements |
+
+### Modes
+
+#### Letterbox Mode
+
+Adds colored bars (pillarbox or letterbox) to preserve the entire image/video while fitting the target aspect ratio.
+
+**Letterbox Color Options:**
+- **Black** (0, 0, 0) - Default, classic cinema look
+- **White** (255, 255, 255) - Clean, minimal aesthetic
+- **Gray** (128, 128, 128) - Neutral middle ground
+- **Custom RGB** - Specify exact color values (0-255)
+
+**Example:** Converting a 16:9 video to 1:1 for Instagram will add black bars on the sides.
+
+#### Crop Mode
+
+Crops the image/video to fit the target aspect ratio without adding bars. You can choose where to focus the crop.
+
+**Crop Anchor Options:**
+
+| Position | Description | Best For |
+|----------|-------------|----------|
+| **Center** (default) | Keep the middle of the image | General purpose, centered subjects |
+| **Upper Left** | Focus on top-left corner | Top-left alignment |
+| **Upper Center** | Focus on top-middle | Portraits, faces, headers |
+| **Upper Right** | Focus on top-right corner | Top-right alignment |
+| **Center Left** | Focus on middle-left | Left-aligned content |
+| **Center Right** | Focus on middle-right | Right-aligned content |
+| **Lower Left** | Focus on bottom-left corner | Bottom-left alignment |
+| **Lower Center** | Focus on bottom-middle | Captions, lower content |
+| **Lower Right** | Focus on bottom-right corner | Bottom-right alignment |
+
+**Example:** Converting a portrait photo to landscape might want **Upper Center** to keep the subject's face in frame.
+
+### Examples
+
+#### Convert Instagram Photos to YouTube (Letterbox)
+
+```bash
+# Run script and select:
+# - Media type: Images (1)
+# - Aspect ratio: 16:9 (1)
+# - Mode: Letterbox (1)
+# - Color: Black (1)
+```
+
+This will take 1:1 Instagram photos and add black bars to make them 16:9 widescreen.
+
+#### Convert Landscape Videos to Vertical (Crop)
+
+```bash
+# Run script and select:
+# - Media type: Videos (2)
+# - Aspect ratio: 9:16 (4)
+# - Mode: Crop (2)
+# - Anchor: Center (1)
+```
+
+This will crop 16:9 videos to 9:16 vertical format, keeping the center area.
+
+#### Batch Process with Custom Colors
+
+Want white letterbox bars instead of black? Simply select option 2 when choosing letterbox color, or option 4 to specify exact RGB values like brand colors.
+
+### Folder Structure
+
+**Default folders:**
+- **Images Input**: `images_to_process/`
+- **Images Output**: `images_processed/`
+- **Videos Input**: `videos_to_process/`
+- **Videos Output**: `videos_processed/`
+
+You can specify custom folders during the interactive prompts.
+
+### Supported Formats
+
+**Images:** JPG, JPEG, PNG, BMP, GIF, WebP, TIFF
+**Videos:** MP4, AVI, MOV, MKV, WMV, FLV
+
+### Technical Details
+
+- **Interpolation**: Lanczos4 for high-quality resizing
+- **Color Format**: BGR (OpenCV standard)
+- **Video Codec**: MP4V (default)
+- **Progress Reporting**: Shows frame-by-frame progress for videos
+
+### Use Cases
+
+- **Social Media**: Adapt content between platforms (YouTube ↔ Instagram ↔ TikTok)
+- **Presentations**: Standardize mixed media to consistent aspect ratio
+- **Video Editing**: Prepare footage for specific aspect ratio requirements
+- **Archiving**: Convert old 4:3 content to modern 16:9
+- **Mobile Content**: Create vertical videos from horizontal footage

@@ -428,3 +428,57 @@ class Operation:
 
         msg.success(f"Completed: {self.name}{duration_str}")
         return True
+
+
+# =============================================================================
+# Aspect Ratio Change Messages
+# =============================================================================
+
+def image_read_error(file_path: str) -> str:
+    """Error message when image cannot be read."""
+    return f"Could not read image: {file_path}"
+
+
+def video_open_failed_error(file_path: str) -> str:
+    """Error message when video cannot be opened."""
+    return f"Could not open video: {file_path}"
+
+
+def image_processing_error(file_path: str, error: Exception) -> str:
+    """Error message for image processing failure."""
+    return f"Error processing image {file_path}: {error}"
+
+
+def video_processing_failed_error(file_path: str, error: Exception) -> str:
+    """Error message for video processing failure."""
+    return f"Error processing video {file_path}: {error}"
+
+
+def video_frame_progress_info(frame_num: int, frame_count: int, progress: float) -> str:
+    """Info message for video frame processing progress."""
+    return f"Processing frame {frame_num}/{frame_count} ({progress:.1f}%)"
+
+
+def video_processed_success(filename: str) -> str:
+    """Success message for video processing."""
+    return f"Processed video: {filename}"
+
+
+def no_media_files_warning(folder: str) -> str:
+    """Warning message when no media files found."""
+    return f"No media files found in '{folder}'"
+
+
+def output_saved_to_folder_info(folder: str) -> str:
+    """Info message for output folder location."""
+    return f"Output saved to '{folder}' folder"
+
+
+def invalid_input_default_warning(default_value: str) -> str:
+    """Warning message for invalid input, using default."""
+    return f"Invalid input. Using default {default_value}"
+
+
+def invalid_choice_default_warning(default_value: str) -> str:
+    """Warning message for invalid choice, using default."""
+    return f"Invalid choice. Using default {default_value}"

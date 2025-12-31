@@ -205,3 +205,28 @@ def supports_transparency(format: str) -> bool:
 def is_lossy_format(format: str) -> bool:
     """Check if format uses lossy compression."""
     return format.upper() in LOSSY_FORMATS
+
+
+# =============================================================================
+# Aspect Ratio Constants
+# =============================================================================
+
+# Common aspect ratios (width, height)
+ASPECT_RATIO_16_9 = (1920, 1080)  # Widescreen
+ASPECT_RATIO_4_3 = (1024, 768)    # Standard
+ASPECT_RATIO_1_1 = (1080, 1080)   # Square
+ASPECT_RATIO_9_16 = (1080, 1920)  # Vertical/Portrait
+ASPECT_RATIO_21_9 = (2560, 1080)  # Ultra-wide
+
+# Letterbox colors (BGR format for OpenCV)
+LETTERBOX_COLOR_BLACK = (0, 0, 0)
+LETTERBOX_COLOR_WHITE = (255, 255, 255)
+LETTERBOX_COLOR_GRAY = (128, 128, 128)
+
+# Video processing
+VIDEO_PROGRESS_FRAME_INTERVAL = 30  # Show progress every N frames
+VIDEO_CODEC_MP4V = "mp4v"
+
+# Color value limits
+COLOR_MIN_VALUE = 0
+COLOR_MAX_VALUE = 255
