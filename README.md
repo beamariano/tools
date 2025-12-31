@@ -507,3 +507,191 @@ You can specify custom folders during the interactive prompts.
 - **Video Editing**: Prepare footage for specific aspect ratio requirements
 - **Archiving**: Convert old 4:3 content to modern 16:9
 - **Mobile Content**: Create vertical videos from horizontal footage
+
+## Text to Image Converter
+
+Convert text lines from a `.txt` file into beautifully centered images. Each line in the input file becomes a separate image with customizable fonts, colors, dimensions, and formats.
+
+### Features
+
+- **Line-by-Line Conversion**: Each line in the text file becomes a separate image
+- **Center-Aligned Text**: All text is automatically centered both horizontally and vertically
+- **Configurable Aspect Ratios**: Choose from common ratios (16:9, 4:3, 1:1, 9:16, 21:9) or custom dimensions
+- **Custom Fonts**: Use system default fonts or provide your own `.ttf` or `.otf` font files
+- **Font Size Control**: Adjustable font size (default: 48px)
+- **Color Schemes**: Preset color combinations or custom RGB values
+- **Multiple Formats**: Output as PNG (lossless), JPEG, or WebP
+- **Batch Processing**: Convert entire text files in one go
+- **Smart Filenames**: Output files named with line numbers and sanitized text
+
+### Requirements
+
+```bash
+pip install Pillow
+```
+
+### Usage
+
+#### Interactive Mode
+
+```bash
+python text_to_image.py
+```
+
+The script will guide you through:
+1. Selecting input text file (default: `text_to_process/text.txt`)
+2. Choosing output folder (default: `images_processed/`)
+3. Selecting aspect ratio and dimensions
+4. Configuring font size
+5. Optional: Using a custom font file
+6. Selecting color scheme
+7. Choosing output format
+
+#### Input File Format
+
+Create a `.txt` file with one text line per image:
+
+```text
+Hello World
+Welcome to Text-to-Image
+Python Script
+Center Aligned Text
+Beautiful Images
+```
+
+Each line will be converted to a separate image file.
+
+### Aspect Ratio Options
+
+| Option | Aspect Ratio | Dimensions | Use Case |
+|--------|--------------|------------|----------|
+| 1 | 16:9 | 1920x1080 | Widescreen, presentations, YouTube |
+| 2 | 4:3 | 1024x768 | Standard displays, classic format |
+| 3 | 1:1 | 1080x1080 | Instagram posts, square thumbnails |
+| 4 | 9:16 | 1080x1920 | Vertical video, mobile stories |
+| 5 | 21:9 | 2560x1080 | Ultra-wide, cinematic |
+| 6 | Custom | User defined | Specific project requirements |
+
+### Color Schemes
+
+**Preset Options:**
+1. **White text on black background** (default) - Classic, high contrast
+2. **Black text on white background** - Clean, minimal
+3. **Custom RGB colors** - Specify exact colors for text and background
+
+**Custom Colors:**
+- Text color: RGB values (0-255 for red, green, blue)
+- Background color: RGB values (0-255 for red, green, blue)
+
+### Output Formats
+
+1. **PNG** (default) - Lossless, best quality, supports transparency
+2. **JPEG** - Smaller file size, good for photos and web
+3. **WEBP** - Modern format, good compression and quality
+
+### Examples
+
+#### Create Quote Images for Social Media
+
+```bash
+# Create quotes.txt with your favorite quotes (one per line)
+echo "Be the change you wish to see" > text_to_process/quotes.txt
+echo "Think outside the box" >> text_to_process/quotes.txt
+echo "Dream big, work hard" >> text_to_process/quotes.txt
+
+# Run the script and select:
+# - Aspect ratio: 1:1 (Square - Instagram ready)
+# - Font size: 60
+# - Color scheme: White on black
+# - Format: PNG
+
+python text_to_image.py
+```
+
+This creates three square images perfect for Instagram posts.
+
+#### Create Presentation Slides
+
+```bash
+# Run script and select:
+# - Aspect ratio: 16:9 (Widescreen)
+# - Font size: 72
+# - Color scheme: Black on white
+# - Format: PNG
+```
+
+Creates widescreen images suitable for PowerPoint or Google Slides.
+
+#### Create Vertical Story Cards
+
+```bash
+# Run script and select:
+# - Aspect ratio: 9:16 (Vertical)
+# - Font size: 80
+# - Custom colors: Your brand colors
+# - Format: JPEG
+```
+
+Perfect for Instagram or TikTok stories.
+
+### Folder Structure
+
+**Default folders:**
+- **Input**: `text_to_process/` - Place your `.txt` files here
+- **Output**: `images_processed/` - Generated images saved here
+
+You can specify custom folders during the interactive prompts.
+
+### Output Filenames
+
+Generated images are named using the pattern:
+```
+line_{number}_{sanitized_text}.{extension}
+```
+
+**Examples:**
+- `line_001_Hello_World.png`
+- `line_002_Welcome_to_Text_to_Image.png`
+- `line_003_Python_Script.jpg`
+
+This makes it easy to identify which image corresponds to which text line.
+
+### Font Selection
+
+**System Default Fonts:**
+The script automatically finds suitable fonts on your system:
+- **macOS**: Helvetica, SF Display
+- **Linux**: DejaVu Sans, Liberation Sans
+- **Windows**: Arial
+
+**Custom Fonts:**
+When prompted, you can provide a path to any `.ttf` or `.otf` font file:
+```
+/path/to/your/CustomFont.ttf
+```
+
+### Use Cases
+
+- **Social Media Content**: Create quote images, announcements, or text-based posts
+- **Presentations**: Generate title slides or section headers
+- **Educational Materials**: Create flashcards or study aids
+- **Signage**: Design digital signs or displays
+- **Video Production**: Generate text overlays or title cards
+- **Marketing**: Create promotional images with key messages
+- **Event Graphics**: Generate event announcements or schedules
+
+### Technical Details
+
+- **Text Rendering**: Uses PIL/Pillow ImageDraw with TrueType font support
+- **Centering Algorithm**: Calculates text bounding box for precise centering
+- **Padding**: 20px default padding around text to prevent edge clipping
+- **Quality**: High-quality text rendering with anti-aliasing
+- **Format Conversion**: Automatic RGB conversion for JPEG (no transparency)
+
+### Tips
+
+- **Text Fit Warning**: If text is too large for the image, you'll receive a warning
+- **Filename Length**: Text in filenames is limited to 50 characters and sanitized
+- **Empty Lines**: Blank lines in the input file are automatically skipped
+- **UTF-8 Support**: Full Unicode support for international characters
+- **JPEG Quality**: JPEG output uses 95% quality for best results
