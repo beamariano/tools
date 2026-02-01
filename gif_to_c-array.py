@@ -27,6 +27,6 @@ def convert_gif(input_file, output_file="gifData.h"):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 gif_to_header.py your_gif.gif")
+        print("Usage: python3 gif_to_c-array.py your_gif.gif")
     else:
         convert_gif(sys.argv[1])
